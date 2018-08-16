@@ -1,28 +1,44 @@
-//package guru.springframework.repositories.reactive;
-//
-//import guru.springframework.bootstrap.RecipeBootstrap;
-//import org.junit.Before;
-//import org.springframework.beans.factory.annotation.Autowired;
-//
-//import static org.junit.Assert.*;
-//
-//public class CategoryReactiveRepositoryIT {
-//
-//    @Autowired
-//    CategoryReactiveRepository categoryReactiveRepository;
-//
-//    @Autowired
-//    RecipeReactiveRepository recipeReactiveRepository;
-//
-//    @Autowired
-//    UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
-//
-//    @Before
-//    public void setUp() throws Exception {
-//        RecipeBootstrap bootstrap = new RecipeBootstrap(
-//                categoryReactiveRepository,
-//                recipeReactiveRepository,
-//                unitOfMeasureReactiveRepository);
-//
-//    }
-//}
+package guru.springframework.repositories.reactive;
+
+import guru.springframework.domain.Category;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(SpringRunner.class)
+@DataMongoTest
+public class CategoryReactiveRepositoryIT {
+
+    @Autowired
+    CategoryReactiveRepository categoryReactiveRepository;
+
+    Category category;
+
+    @Before
+    public void setUp() throws Exception {
+        categoryReactiveRepository.deleteAll().block();
+        category = new Category();
+        category.setDescription("foo");
+    }
+
+    @Test
+    public void testSave() {
+        categoryReactiveRepository.save(category).block();
+        assertEquals(Long.valueOf(1L), categoryReactiveRepository.count().block());
+    }
+
+
+    @Test
+    public void findByDescription() {
+        categoryReactiveRepository.save(category).then().block();
+
+        Category fetchedCat = categoryReactiveRepository.findByDescription("foo").block();
+        assertNotNull(fetchedCat.getId());
+    }
+}
